@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EgoSmith Bad Case</title>
+<style>
+:root { color-scheme:dark; --bg:#0b1118; --panel:#111b26; --panel2:#172432; --line:#283849; --text:#e7edf3; --muted:#91a0af; --blue:#62b0ff; --red:#ee6a79; --amber:#e8b659; --green:#57c99b; --orange:#ffa94d; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Noto Sans CJK SC","PingFang SC",sans-serif; }
+button,select { font:inherit; } button { cursor:pointer; }
+.topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:12px 20px; border-bottom:1px solid var(--line); background:#0e1721; position:sticky; top:0; z-index:5; flex-wrap:wrap; }
+.brand { display:flex; align-items:center; gap:12px; } .mark { width:30px; height:30px; display:grid; place-items:center; border:1px solid #3a5872; color:var(--blue); font-weight:800; }
+.brand strong { font-size:15px; } .brand span { display:block; color:var(--muted); font-size:12px; }
+.tabs { display:flex; gap:6px; } .tab { background:#13202c; color:var(--muted); border:1px solid var(--line); padding:7px 12px; border-radius:4px; } .tab.active { color:var(--text); border-color:#3d6a8f; background:#172d40; }
+.layout { display:grid; grid-template-columns:280px minmax(0,1fr); }
+.sidebar { border-right:1px solid var(--line); background:#0e1721; height:calc(100vh - 57px); overflow:auto; position:sticky; top:57px; }
+.side-head { padding:14px 14px 8px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+.item { display:block; width:100%; text-align:left; color:var(--text); background:transparent; border:1px solid transparent; padding:9px 12px; border-radius:4px; }
+.item:hover { background:#142331; } .item.active { background:#172d40; border-color:#2d5877; }
+.item-line { display:flex; justify-content:space-between; gap:8px; align-items:center; } .item-name { font-weight:650; font-size:13px; }
+.item-sub { color:var(--muted); font-size:12px; margin-top:3px; }
+.bar { height:4px; background:#1d2c3a; margin-top:6px; border-radius:2px; overflow:hidden; } .bar > i { display:block; height:100%; background:var(--green); }
+.pill { font-size:11px; padding:1px 7px; border-radius:10px; border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+.pill.bad { color:var(--red); border-color:#5c2d36; } .pill.mid { color:var(--amber); border-color:#5a4a26; } .pill.good { color:var(--green); border-color:#25503f; }
+.main { min-width:0; padding:18px 22px 60px; }
+h1 { margin:2px 0 6px; font-size:22px; } h2 { font-size:15px; margin:22px 0 10px; }
+.muted { color:var(--muted); } .eyebrow { color:var(--blue); text-transform:uppercase; letter-spacing:.1em; font-size:11px; font-weight:700; }
+.stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin:14px 0; }
+.stat { background:var(--panel); border:1px solid var(--line); padding:10px 12px; } .stat-label { color:var(--muted); font-size:11px; } .stat-value { font-size:20px; font-weight:750; margin-top:2px; }
+.matrix-wrap { overflow:auto; border:1px solid var(--line); background:var(--panel); }
+table.matrix { border-collapse:collapse; font-size:12px; min-width:100%; }
+.matrix th, .matrix td { border-bottom:1px solid var(--line); border-right:1px solid #1d2b39; padding:6px 8px; text-align:center; white-space:nowrap; }
+.matrix th { background:#0f1924; color:var(--muted); font-weight:600; position:sticky; top:0; }
+.matrix th.rh, .matrix td.rh { text-align:left; position:sticky; left:0; background:#0f1924; z-index:1; }
+.matrix td.cell { cursor:pointer; } .matrix td.cell:hover { outline:1px solid var(--blue); outline-offset:-1px; }
+.matrix th.vert { writing-mode:vertical-rl; transform:rotate(180deg); height:130px; vertical-align:bottom; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 4px; }
+.chip { background:#13202c; color:var(--muted); border:1px solid var(--line); padding:4px 10px; border-radius:14px; font-size:12px; }
+.chip.active { color:var(--text); background:#3a1f27; border-color:#7a3a48; } .chip b { color:var(--text); font-weight:650; margin-left:4px; }
+.reason-desc { background:var(--panel2); border:1px solid var(--line); border-left:3px solid var(--red); padding:9px 12px; margin:10px 0 14px; color:#c7d1db; font-size:13px; }
+.case { background:var(--panel); border:1px solid var(--line); margin-bottom:16px; }
+.case-head { display:flex; justify-content:space-between; gap:12px; padding:11px 14px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.case-title { font-weight:700; } .case-task { color:var(--muted); font-size:12px; margin-top:2px; max-width:820px; }
+.case-meta { color:var(--muted); font-size:12px; text-align:right; }
+.shots { display:flex; gap:8px; overflow-x:auto; padding:12px 14px; }
+.shots figure { margin:0; flex:0 0 auto; } .shots img { display:block; height:200px; border:1px solid var(--line); cursor:zoom-in; background:#000; }
+.shots figcaption { color:var(--muted); font-size:11px; margin-top:3px; }
+.noimg { width:260px; height:200px; display:grid; place-items:center; border:1px dashed var(--line); color:var(--muted); font-size:12px; }
+.clip-wrap { display:grid; grid-template-columns:minmax(0,560px) minmax(220px,1fr); gap:14px; padding:12px 14px 4px; align-items:start; }
+.clip-wrap video { width:100%; max-height:420px; background:#000; border:1px solid var(--line); display:block; }
+.clip-side { font-size:12px; color:#c7d1db; display:flex; flex-direction:column; gap:7px; }
+.clip-title { font-weight:700; font-size:13px; color:var(--text); } .clip-frame b { color:var(--amber); font-size:15px; }
+.rates { display:flex; flex-wrap:wrap; gap:5px; } .rates button { background:#13202c; color:var(--muted); border:1px solid var(--line); padding:3px 8px; border-radius:4px; font-size:12px; }
+.rates button.on { color:var(--text); border-color:#3d6a8f; background:#172d40; }
+.chart svg[data-total] { cursor:crosshair; }
+@media (max-width:1100px) { .clip-wrap { grid-template-columns:1fr; } }
+.chart { padding:2px 14px 12px; } .chart svg { width:100%; height:170px; display:block; background:#0d1620; border:1px solid var(--line); }
+.legend { display:flex; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--muted); margin-top:5px; } .legend i { display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:4px; }
+.err { color:var(--red); font-size:12px; padding:0 14px 10px; }
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,.85); display:none; place-items:center; z-index:20; cursor:zoom-out; } .lightbox img { max-width:96vw; max-height:94vh; }
+.empty { color:var(--muted); padding:40px; text-align:center; border:1px dashed var(--line); }
+@media (max-width:900px) { .layout { grid-template-columns:1fr; } .sidebar { position:static; height:auto; } .stats { grid-template-columns:repeat(2,1fr); } }
+</style></head>
+<body>
+<div class="topbar">
+  <div class="brand"><div class="mark">ES</div><div><strong>EgoSmith 质量控制 · Bad Case</strong><span id="subtitle">loading…</span></div></div>
+  <div class="tabs"><button class="tab" data-view="overview">总览矩阵</button><button class="tab" data-view="dataset">按数据集</button><button class="tab" data-view="reason">按淘汰类别</button></div>
+</div>
+<div class="layout">
+  <aside class="sidebar"><div class="side-head" id="sideHead">数据集</div><div id="sideList"></div></aside>
+  <main class="main" id="main"></main>
+</div>
+<div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
+<script>
+const state = { view: "overview", dataset: null, reason: null, data: null };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = v => (v == null ? "-" : (100 * v).toFixed(1) + "%");
+const fmt = (v, d = 3) => (v == null || !isFinite(v) ? "-" : Number(v).toFixed(d));
+const rateClass = v => (v >= 0.8 ? "good" : v >= 0.5 ? "mid" : "bad");
+const COLORS = { left: "#62b0ff", right: "#ffa94d", cam: "#57c99b", x: "#ee6a79", y: "#57c99b", z: "#62b0ff" };
+
+function reasonLabel(r) { return (state.data.reasons[r] || { label: r }).label; }
+function reasonDesc(r) { return (state.data.reasons[r] || { desc: r }).desc; }
+function datasets() { return state.data.datasets; }
+function ds(name) { return datasets().find(d => d.name === name); }
+function casesFor(dsName, reason) {
+  return state.data.cases.filter(c => (!dsName || c.dataset === dsName) && (!reason || c.reason === reason));
+}
+function allReasons() {
+  const tot = {};
+  for (const d of datasets()) for (const [r, n] of Object.entries(d.reason_counts)) tot[r] = (tot[r] || 0) + n;
+  return Object.entries(tot).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+}
+
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  state.view = p.get("view") || "overview";
+  state.dataset = p.get("ds");
+  state.reason = p.get("reason");
+}
+function go(view, dsName, reason) {
+  const p = new URLSearchParams();
+  p.set("view", view);
+  if (dsName) p.set("ds", dsName);
+  if (reason) p.set("reason", reason);
+  location.hash = p.toString();
+}
+
+function renderSidebar() {
+  const list = document.getElementById("sideList");
+  const head = document.getElementById("sideHead");
+  if (state.view === "reason") {
+    head.textContent = "淘汰类别";
+    list.innerHTML = allReasons().map(r => {
+      const n = datasets().reduce((s, d) => s + (d.reason_counts[r] || 0), 0);
+      const nds = datasets().filter(d => d.reason_counts[r]).length;
+      return `<button class="item ${state.reason === r ? "active" : ""}" data-reason="${esc(r)}"><div class="item-line"><span class="item-name">${esc(reasonLabel(r))}</span><span class="pill">${n}</span></div><div class="item-sub">${nds} 个数据集 · ${esc(r)}</div></button>`;
+    }).join("");
+    list.querySelectorAll("[data-reason]").forEach(b => (b.onclick = () => go("reason", null, b.dataset.reason)));
+  } else {
+    head.textContent = "数据集（按保留率）";
+    const sorted = [...datasets()].sort((a, b) => a.keep_rate - b.keep_rate);
+    list.innerHTML = sorted.map(d => `<button class="item ${state.dataset === d.name && state.view === "dataset" ? "active" : ""}" data-ds="${esc(d.name)}"><div class="item-line"><span class="item-name">${esc(d.name)}</span><span class="pill ${rateClass(d.keep_rate)}">${pct(d.keep_rate)}</span></div><div class="item-sub">评估 ${d.evaluated}/${d.total} · 淘汰 ${d.evaluated - d.kept}</div><div class="bar"><i style="width:${(100 * d.keep_rate).toFixed(1)}%"></i></div></button>`).join("");
+    list.querySelectorAll("[data-ds]").forEach(b => (b.onclick = () => go("dataset", b.dataset.ds, null)));
+  }
+}
+
+function renderOverview() {
+  const reasons = allReasons();
+  const sorted = [...datasets()].sort((a, b) => a.keep_rate - b.keep_rate);
+  const totalEval = sorted.reduce((s, d) => s + d.evaluated, 0);
+  const totalKept = sorted.reduce((s, d) => s + d.kept, 0);
+  const head = `<tr><th class="rh">数据集</th><th>保留率</th><th>评估</th>${reasons.map(r => `<th class="vert" title="${esc(reasonDesc(r))}">${esc(reasonLabel(r))}</th>`).join("")}</tr>`;
+  const rows = sorted.map(d => {
+    const cells = reasons.map(r => {
+      const n = d.reason_counts[r] || 0;
+      if (!n) return `<td class="muted">·</td>`;
+      const frac = n / d.evaluated;
+      const bg = `rgba(238,106,121,${Math.min(0.85, 0.12 + frac * 0.9).toFixed(2)})`;
+      return `<td class="cell" style="background:${bg}" data-ds="${esc(d.name)}" data-reason="${esc(r)}" title="${esc(d.name)} · ${esc(reasonLabel(r))}: ${n}/${d.evaluated}">${n}</td>`;
+    }).join("");
+    return `<tr><td class="rh"><a href="#view=dataset&ds=${encodeURIComponent(d.name)}" style="color:var(--text)">${esc(d.name)}</a></td><td><span class="pill ${rateClass(d.keep_rate)}">${pct(d.keep_rate)}</span></td><td class="muted">${d.evaluated}/${d.total}</td>${cells}</tr>`;
+  }).join("");
+  document.getElementById("main").innerHTML = `
+    <div class="eyebrow">overview</div><h1>各数据集 × 淘汰类别</h1>
+    <div class="muted">格子里的数字是该数据集里命中这个类别的 episode 数（一条 episode 可能同时命中多类），颜色越深占比越高。点格子看对应的 bad case。</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">数据集</div><div class="stat-value">${sorted.length}</div></div>
+      <div class="stat"><div class="stat-label">评估 episode</div><div class="stat-value">${totalEval}</div></div>
+      <div class="stat"><div class="stat-label">整体保留率</div><div class="stat-value">${pct(totalKept / totalEval)}</div></div>
+      <div class="stat"><div class="stat-label">展示的 bad case</div><div class="stat-value">${state.data.cases.length}</div></div>
+    </div>
+    <div class="matrix-wrap"><table class="matrix">${head}${rows}</table></div>
+    <h2>判定规则（egosmith 默认阈值）</h2>
+    <div class="matrix-wrap"><table class="matrix"><tr><th class="rh">类别</th><th style="text-align:left">含义</th></tr>${reasons.map(r => `<tr><td class="rh"><a href="#view=reason&reason=${encodeURIComponent(r)}" style="color:var(--text)">${esc(reasonLabel(r))}</a></td><td style="text-align:left;white-space:normal" class="muted">${esc(reasonDesc(r))}</td></tr>`).join("")}</table></div>`;
+  document.querySelectorAll("td.cell").forEach(td => (td.onclick = () => go("dataset", td.dataset.ds, td.dataset.reason)));
+}
+
+function seriesStyle(key) {
+  if (key.endsWith("_left") || key.includes("_left_")) return { color: COLORS.left, name: key };
+  if (key.endsWith("_right") || key.includes("_right_")) return { color: COLORS.right, name: key };
+  return { color: COLORS.cam, name: key };
+}
+function axisDash(key) { return key.endsWith("_y") ? "5 3" : key.endsWith("_z") ? "1 3" : ""; }
+
+function renderChart(c) {
+  const S = c.series || {};
+  const keys = Object.keys(S).filter(k => !k.startsWith("__") && Array.isArray(S[k]));
+  if (!keys.length) return "";
+  const W = 1000, H = 170, P = { l: 46, r: 10, t: 10, b: 20 };
+  let lo = Infinity, hi = -Infinity;
+  for (const k of keys) for (const v of S[k]) if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  const thr = S.__threshold;
+  if (thr != null) hi = Math.max(hi, thr * 1.1);
+  const b = S.__bounds || {};
+  for (const ax of Object.values(b)) { lo = Math.min(lo, ax.lower); hi = Math.max(hi, ax.upper); }
+  if (!isFinite(lo)) return "";
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const pad = (hi - lo) * 0.05; lo -= pad; hi += pad;
+  const n = S[keys[0]].length, total = c.series_len || n;
+  const X = i => P.l + (i / Math.max(n - 1, 1)) * (W - P.l - P.r);
+  const XF = f => P.l + (f / Math.max(total - 1, 1)) * (W - P.l - P.r);
+  const Y = v => P.t + (1 - (v - lo) / (hi - lo)) * (H - P.t - P.b);
+  let svg = "";
+  for (const sp of (c.spans || []).slice(0, 400)) {
+    const x0 = XF(sp.start), x1 = Math.max(XF(sp.end + 1), x0 + 1.5);
+    svg += `<rect x="${x0.toFixed(1)}" y="${P.t}" width="${(x1 - x0).toFixed(1)}" height="${H - P.t - P.b}" fill="rgba(238,106,121,.22)"/>`;
+  }
+  for (const s of c.shots || []) svg += `<line x1="${XF(s.frame).toFixed(1)}" x2="${XF(s.frame).toFixed(1)}" y1="${P.t}" y2="${H - P.b}" stroke="#e8b659" stroke-width="1" stroke-dasharray="3 3"/>`;
+  if (lo < 0 && hi > 0) svg += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(0)}" y2="${Y(0)}" stroke="#3a4a5a"/>`;
+  if (thr != null) svg += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(thr)}" y2="${Y(thr)}" stroke="#ee6a79" stroke-dasharray="6 4"/><text x="${W - P.r - 4}" y="${Y(thr) - 4}" fill="#ee6a79" font-size="11" text-anchor="end">阈值 ${thr}</text>`;
+  for (const [ax, bd] of Object.entries(b)) {
+    const col = COLORS[ax] || "#888";
+    svg += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(bd.lower)}" y2="${Y(bd.lower)}" stroke="${col}" stroke-opacity=".55" stroke-dasharray="2 4"/><line x1="${P.l}" x2="${W - P.r}" y1="${Y(bd.upper)}" y2="${Y(bd.upper)}" stroke="${col}" stroke-opacity=".55" stroke-dasharray="2 4"/>`;
+  }
+  for (const k of keys) {
+    const st = seriesStyle(k);
+    let d = "", pen = false;
+    S[k].forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1); pen = true; });
+    svg += `<path d="${d}" fill="none" stroke="${st.color}" stroke-width="1.3" stroke-dasharray="${axisDash(k)}" opacity=".9"/>`;
+  }
+  const clip = c.clip && c.clip.src ? c.clip : null;
+  if (clip) {
+    const x0 = XF(clip.start), x1 = XF(clip.end);
+    svg += `<rect x="${x0.toFixed(1)}" y="${H - P.b}" width="${Math.max(x1 - x0, 2).toFixed(1)}" height="4" fill="#62b0ff"/>`;
+    svg += `<line class="playhead" x1="${x0.toFixed(1)}" x2="${x0.toFixed(1)}" y1="${P.t}" y2="${H - P.b}" stroke="#ffffff" stroke-width="1.5" style="display:none"/>`;
+  }
+  svg += `<text x="4" y="${P.t + 9}" fill="#91a0af" font-size="10">${fmt(hi, 2)}</text><text x="4" y="${H - P.b}" fill="#91a0af" font-size="10">${fmt(lo, 2)}</text><text x="${P.l}" y="${H - 5}" fill="#91a0af" font-size="10">frame 0</text><text x="${W - P.r}" y="${H - 5}" fill="#91a0af" font-size="10" text-anchor="end">frame ${total - 1}</text>`;
+  const meanB = S.__mean_bounds ? `<span>episode 均值围栏 [${fmt(S.__mean_bounds.lower, 4)}, ${fmt(S.__mean_bounds.upper, 4)}]</span>` : "";
+  const legend = keys.map(k => `<span><i style="background:${seriesStyle(k).color}"></i>${esc(k)}</span>`).join("") +
+    `<span><i style="background:rgba(238,106,121,.5);height:8px"></i>违规帧</span><span><i style="background:#e8b659"></i>截图位置</span>` +
+    (clip ? `<span><i style="background:#62b0ff;height:4px"></i>视频片段范围（白线 = 播放位置，点曲线可跳转）</span>` : "") + meanB +
+    (Object.keys(b).length ? `<span>虚线 = 数据集 IQR 围栏（x 红 / y 绿 / z 蓝）</span>` : "");
+  const geo = clip ? ` data-l="${P.l}" data-r="${W - P.r}" data-total="${total}" data-w="${W}"` : "";
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"${geo}>${svg}</svg><div class="legend">${legend}</div></div>`;
+}
+
+function renderCase(c) {
+  const others = (c.all_reasons || []).filter(r => r !== c.reason);
+  const shots = (c.shots || []).map(s => s.src
+    ? `<figure><img loading="lazy" src="${esc(s.src)}" alt="frame ${s.frame}"><figcaption>frame ${s.frame} · ${s.t.toFixed(2)}s</figcaption></figure>`
+    : `<figure><div class="noimg">frame ${s.frame} 无法解码</div></figure>`).join("");
+  const pres = c.presence ? `L 可见 ${pct(c.presence.left)} · R 可见 ${pct(c.presence.right)}` : "";
+  return `<div class="case">
+    <div class="case-head"><div><div class="case-title">${esc(c.dataset)} · episode ${c.episode_index} <span class="pill bad">${esc(reasonLabel(c.reason))}</span></div>
+      <div class="case-task">${esc(c.task || "无任务描述")}</div>
+      ${others.length ? `<div class="chips">${others.map(r => `<span class="chip">${esc(reasonLabel(r))}</span>`).join("")}</div>` : ""}</div>
+      <div class="case-meta">严重度 ${fmt(c.severity, 3)}<br>${c.frames_total ?? "-"} 帧 @ ${fmt(c.fps, 1)} fps<br>${c.image_size ? c.image_size.join("×") : ""} · ${pres}</div></div>
+    ${c.error ? `<div class="err">${esc(c.error)}</div>` : ""}
+    ${renderClip(c)}
+    <div class="shots">${shots || '<div class="muted">没有截图</div>'}</div>
+    ${renderChart(c)}
+  </div>`;
+}
+
+function renderClip(c) {
+  const clip = c.clip;
+  if (!clip) return "";
+  if (!clip.src) return `<div class="err">视频片段生成失败：${esc(clip.error || "unknown")}</div>`;
+  const dur = clip.frames / clip.fps;
+  return `<div class="clip-wrap" data-start="${clip.start}" data-end="${clip.end}" data-fps="${clip.fps}">
+    <video class="clip" controls muted loop playsinline preload="none" src="${esc(clip.src)}"></video>
+    <div class="clip-side">
+      <div class="clip-title">bad case 视频</div>
+      <div>原视频 frame ${clip.start}–${clip.end}（${(clip.start / clip.fps).toFixed(2)}s–${(clip.end / clip.fps).toFixed(2)}s，${dur.toFixed(1)}s）</div>
+      <div class="clip-frame">当前 frame <b>-</b></div>
+      <div class="muted">叠加原始 21 点骨架；<span style="color:#ee6a79">红框 + VIOLATION</span> 表示该帧触发了本类规则。</div>
+      <div class="rates"><button data-rate="0.25">0.25×</button><button data-rate="0.5">0.5×</button><button data-rate="1" class="on">1×</button><button data-step="-1">◀ 帧</button><button data-step="1">帧 ▶</button></div>
+    </div>
+  </div>`;
+}
+
+function bindClips() {
+  document.querySelectorAll(".case").forEach(card => {
+    const wrap = card.querySelector(".clip-wrap");
+    if (!wrap) return;
+    const video = wrap.querySelector("video");
+    const start = +wrap.dataset.start, fps = +wrap.dataset.fps;
+    const svg = card.querySelector(".chart svg[data-total]");
+    const head = svg && svg.querySelector(".playhead");
+    const label = wrap.querySelector(".clip-frame b");
+    const frameAt = () => start + Math.round(video.currentTime * fps);
+    const update = () => {
+      const f = frameAt();
+      label.textContent = f;
+      if (!head) return;
+      const l = +svg.dataset.l, r = +svg.dataset.r, total = +svg.dataset.total;
+      const x = l + (f / Math.max(total - 1, 1)) * (r - l);
+      head.setAttribute("x1", x); head.setAttribute("x2", x); head.style.display = "";
+    };
+    video.addEventListener("timeupdate", update);
+    video.addEventListener("seeked", update);
+    wrap.querySelectorAll("[data-rate]").forEach(b => (b.onclick = () => {
+      video.playbackRate = +b.dataset.rate;
+      wrap.querySelectorAll("[data-rate]").forEach(x => x.classList.toggle("on", x === b));
+    }));
+    wrap.querySelectorAll("[data-step]").forEach(b => (b.onclick = () => {
+      video.pause();
+      video.currentTime = Math.max(0, video.currentTime + (+b.dataset.step) / fps);
+    }));
+    if (svg) svg.addEventListener("click", ev => {
+      const rect = svg.getBoundingClientRect();
+      const l = +svg.dataset.l, r = +svg.dataset.r, total = +svg.dataset.total, W = +svg.dataset.w;
+      const x = ((ev.clientX - rect.left) / rect.width) * W;
+      const f = Math.round(((x - l) / (r - l)) * (total - 1));
+      const end = +wrap.dataset.end;
+      if (f < start || f > end) return;
+      if (video.preload === "none") video.preload = "auto";
+      video.currentTime = (f - start) / fps;
+      video.pause();
+      video.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  });
+  // Only one clip plays at a time.
+  document.querySelectorAll("video.clip").forEach(v => v.addEventListener("play", () => {
+    document.querySelectorAll("video.clip").forEach(o => { if (o !== v) o.pause(); });
+  }));
+}
+
+function reasonChips(counts, active, onPick) {
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  return `<div class="chips">${entries.map(([r, n]) => `<button class="chip ${active === r ? "active" : ""}" data-pick="${esc(r)}">${esc(reasonLabel(r))}<b>${n}</b></button>`).join("")}</div>`;
+}
+
+function renderDataset() {
+  const d = ds(state.dataset) || [...datasets()].sort((a, b) => a.keep_rate - b.keep_rate)[0];
+  state.dataset = d.name;
+  const reasons = Object.keys(d.reason_counts);
+  const active = state.reason && d.reason_counts[state.reason] ? state.reason : null;
+  const shown = active ? [active] : reasons.sort((a, b) => d.reason_counts[b] - d.reason_counts[a]);
+  const m = d.median || {};
+  const sections = shown.map(r => {
+    const cs = casesFor(d.name, r);
+    return `<h2>${esc(reasonLabel(r))} <span class="muted" style="font-weight:400">· ${d.reason_counts[r]} 条命中，展示 ${cs.length} 条</span></h2>
+      <div class="reason-desc">${esc(reasonDesc(r))}</div>${cs.map(renderCase).join("") || '<div class="empty">没有可展示的样本</div>'}`;
+  }).join("");
+  document.getElementById("main").innerHTML = `
+    <div class="eyebrow">dataset</div><h1>${esc(d.name)}</h1>
+    <div class="muted">${d.fps} fps · 评估 ${d.evaluated}/${d.total} 条（大数据集随机抽样）</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">episode 保留率</div><div class="stat-value" style="color:var(--${rateClass(d.keep_rate) === "good" ? "green" : rateClass(d.keep_rate) === "mid" ? "amber" : "red"})">${pct(d.keep_rate)}</div></div>
+      <div class="stat"><div class="stat-label">帧保留率</div><div class="stat-value">${pct(d.frame_keep_rate)}</div></div>
+      <div class="stat"><div class="stat-label">淘汰 episode</div><div class="stat-value">${d.evaluated - d.kept}</div></div>
+      <div class="stat"><div class="stat-label">中位手腕旋转步长</div><div class="stat-value">${fmt(m.max_wrist_rotation_step, 2)}</div></div>
+    </div>
+    <div class="muted" style="font-size:12px">点类别筛选；再点一次显示全部。图中蓝色是左手、橙色是右手，白圈是 wrist_pose 的位置（和骨架第 0 点不重合说明两个字段不一致）。</div>
+    ${reasonChips(d.reason_counts, active)}
+    ${sections || '<div class="empty">这个数据集没有被淘汰的 episode</div>'}`;
+  document.querySelectorAll("[data-pick]").forEach(b => (b.onclick = () => go("dataset", d.name, active === b.dataset.pick ? null : b.dataset.pick)));
+  bindImages();
+}
+
+function renderReason() {
+  const reasons = allReasons();
+  const r = state.reason && reasons.includes(state.reason) ? state.reason : reasons[0];
+  state.reason = r;
+  const hit = datasets().filter(d => d.reason_counts[r]).sort((a, b) => b.reason_counts[r] / b.evaluated - a.reason_counts[r] / a.evaluated);
+  const sections = hit.map(d => {
+    const cs = casesFor(d.name, r);
+    return `<h2><a href="#view=dataset&ds=${encodeURIComponent(d.name)}" style="color:var(--text)">${esc(d.name)}</a> <span class="muted" style="font-weight:400">· ${d.reason_counts[r]}/${d.evaluated} 条（${pct(d.reason_counts[r] / d.evaluated)}），展示 ${cs.length} 条</span></h2>${cs.map(renderCase).join("")}`;
+  }).join("");
+  document.getElementById("main").innerHTML = `
+    <div class="eyebrow">reason · ${esc(r)}</div><h1>${esc(reasonLabel(r))}</h1>
+    <div class="reason-desc">${esc(reasonDesc(r))}</div>
+    <div class="chips">${hit.map(d => `<a class="chip" href="#view=dataset&ds=${encodeURIComponent(d.name)}&reason=${encodeURIComponent(r)}">${esc(d.name)}<b>${d.reason_counts[r]}</b></a>`).join("")}</div>
+    ${sections}`;
+  bindImages();
+}
+
+function bindImages() {
+  const lb = document.getElementById("lightbox"), img = document.getElementById("lightboxImg");
+  document.querySelectorAll(".shots img").forEach(el => (el.onclick = () => { img.src = el.src; lb.style.display = "grid"; }));
+  lb.onclick = () => { lb.style.display = "none"; img.src = ""; };
+  bindClips();
+}
+
+function render() {
+  readHash();
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === state.view));
+  renderSidebar();
+  if (state.view === "dataset") renderDataset();
+  else if (state.view === "reason") renderReason();
+  else renderOverview();
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll(".tab").forEach(t => (t.onclick = () => go(t.dataset.view, t.dataset.view === "dataset" ? state.dataset : null, t.dataset.view === "reason" ? state.reason : null)));
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("lightbox").click(); });
+window.addEventListener("hashchange", render);
+fetch("data.json").then(r => r.json()).then(data => {
+  state.data = data;
+  const n = data.datasets.reduce((s, d) => s + d.evaluated, 0);
+  document.getElementById("subtitle").textContent = `${data.datasets.length} 个数据集 · ${n} episode · ${data.cases.length} 个 bad case · 生成于 ${data.generated}`;
+  render();
+}).catch(err => { document.getElementById("main").innerHTML = `<div class="empty">data.json 加载失败：${esc(err)}</div>`; });
+
+</script>
+</body></html>
