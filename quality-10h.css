@@ -8,6 +8,7 @@
 .quality-layout :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 .quality-summary { margin: 16px 0; }
 .quality-summary .stat { border-radius: 6px; }
+.quality-jump { margin-top: 5px; padding: 6px 10px; background: #172d40; color: var(--blue); border: 1px solid #3d6a8f; border-radius: 4px; }
 .quality-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0 26px; }
 .quality-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 15px 16px; min-width: 0; }
 .quality-legend { display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin: 5px 0 12px; }
@@ -25,7 +26,7 @@
 .quality-hours { background: var(--green); }
 .quality-l4 { background: var(--orange); }
 .quality-unknown { background: #485e73; }
-.quality-catalog { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(275px, 1fr); gap: 15px; align-items: start; }
+.quality-catalog { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(275px, 1fr); gap: 15px; align-items: start; scroll-margin-top: 122px; }
 .quality-controls { display: flex; flex-wrap: wrap; gap: 9px; margin: 9px 0; align-items: center; }
 .quality-controls input, .quality-controls select { min-height: 34px; max-width: 100%; border: 1px solid var(--line); border-radius: 4px; background: #0f1924; color: var(--text); padding: 4px 9px; font: inherit; }
 .quality-controls input { width: 205px; }
@@ -58,4 +59,7 @@
   .quality-chart-row { grid-template-columns: 105px minmax(0, 1fr) 76px; gap: 6px; }
   .quality-chart-row output { font-size: 10px; }
   .quality-controls input { width: min(100%, 205px); }
+}
+@media (max-width: 360px) {
+  .quality-catalog { scroll-margin-top: 165px; }
 }

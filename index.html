@@ -59,7 +59,7 @@ table.matrix { border-collapse:collapse; font-size:12px; min-width:100%; }
 .empty { color:var(--muted); padding:40px; text-align:center; border:1px dashed var(--line); }
 @media (max-width:900px) { .layout { grid-template-columns:1fr; } .sidebar { position:static; height:auto; } .stats { grid-template-columns:repeat(2,1fr); } }
 </style>
-<link rel="stylesheet" href="quality-10h.css">
+<link rel="stylesheet" href="quality-10h.css?v=20261112">
 </head>
 <body>
 <div class="topbar">
@@ -71,7 +71,7 @@ table.matrix { border-collapse:collapse; font-size:12px; min-width:100%; }
   <main class="main" id="main"></main>
 </div>
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
-<script src="quality-10h.js"></script>
+<script src="quality-10h.js?v=20261112"></script>
 <script>
 const state = { view: "quality", dataset: null, reason: null, data: null, legacyRequest: null, legacyError: null };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
