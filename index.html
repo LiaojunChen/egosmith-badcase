@@ -58,19 +58,22 @@ table.matrix { border-collapse:collapse; font-size:12px; min-width:100%; }
 .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.85); display:none; place-items:center; z-index:20; cursor:zoom-out; } .lightbox img { max-width:96vw; max-height:94vh; }
 .empty { color:var(--muted); padding:40px; text-align:center; border:1px dashed var(--line); }
 @media (max-width:900px) { .layout { grid-template-columns:1fr; } .sidebar { position:static; height:auto; } .stats { grid-template-columns:repeat(2,1fr); } }
-</style></head>
+</style>
+<link rel="stylesheet" href="quality-10h.css">
+</head>
 <body>
 <div class="topbar">
-  <div class="brand"><div class="mark">ES</div><div><strong>EgoSmith 质量控制 · Bad Case</strong><span id="subtitle">loading…</span></div></div>
-  <div class="tabs"><button class="tab" data-view="overview">总览矩阵</button><button class="tab" data-view="dataset">按数据集</button><button class="tab" data-view="reason">按淘汰类别</button></div>
+  <div class="brand"><div class="mark">ES</div><div><strong>EgoSmith 质量控制 · Bad Case</strong><span id="subtitle"></span></div></div>
+  <nav class="tabs" aria-label="评估页面"><button class="tab" data-view="quality">10 小时评估</button><button class="tab" data-view="overview">历史矩阵</button><button class="tab" data-view="dataset">按数据集</button><button class="tab" data-view="reason">按淘汰类别</button></nav>
 </div>
 <div class="layout">
   <aside class="sidebar"><div class="side-head" id="sideHead">数据集</div><div id="sideList"></div></aside>
   <main class="main" id="main"></main>
 </div>
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
+<script src="quality-10h.js"></script>
 <script>
-const state = { view: "overview", dataset: null, reason: null, data: null };
+const state = { view: "quality", dataset: null, reason: null, data: null, legacyRequest: null, legacyError: null };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pct = v => (v == null ? "-" : (100 * v).toFixed(1) + "%");
 const fmt = (v, d = 3) => (v == null || !isFinite(v) ? "-" : Number(v).toFixed(d));
@@ -92,7 +95,8 @@ function allReasons() {
 
 function readHash() {
   const p = new URLSearchParams(location.hash.slice(1));
-  state.view = p.get("view") || "overview";
+  const requested = p.get("view");
+  state.view = ["quality", "overview", "dataset", "reason"].includes(requested) ? requested : "quality";
   state.dataset = p.get("ds");
   state.reason = p.get("reason");
 }
@@ -354,7 +358,40 @@ function bindImages() {
 
 function render() {
   readHash();
-  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === state.view));
+  document.querySelectorAll(".tab").forEach(t => {
+    const active = t.dataset.view === state.view;
+    t.classList.toggle("active", active);
+    if (active) t.setAttribute("aria-current", "page");
+    else t.removeAttribute("aria-current");
+  });
+  const quality = state.view === "quality";
+  document.querySelector(".layout").classList.toggle("quality-layout", quality);
+  const subtitle = document.getElementById("subtitle");
+  const main = document.getElementById("main");
+  if (quality) {
+    subtitle.textContent = "2026-11-11 · 跨数据集评估";
+    window.EgoSmithQuality.render(main, state.dataset, () => state.view === "quality");
+    return;
+  }
+  if (!state.data) {
+    subtitle.textContent = "历史几何评估";
+    main.innerHTML = `<p class="empty" role="status">${state.legacyError ? esc(state.legacyError) : "正在加载历史样例…"}</p>`;
+    if (!state.legacyRequest) {
+      state.legacyRequest = fetch("data.json").then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }).then(data => {
+        state.data = data;
+        if (state.view !== "quality") render();
+      }).catch(error => {
+        state.legacyError = `历史数据加载失败（${error.message}）`;
+        if (state.view !== "quality") render();
+      });
+    }
+    return;
+  }
+  const n = state.data.datasets.reduce((s, d) => s + d.evaluated, 0);
+  subtitle.textContent = `历史几何评估 · ${state.data.datasets.length} 个数据集 · ${n} 条 · ${state.data.cases.length} 个样例`;
   renderSidebar();
   if (state.view === "dataset") renderDataset();
   else if (state.view === "reason") renderReason();
@@ -365,12 +402,7 @@ function render() {
 document.querySelectorAll(".tab").forEach(t => (t.onclick = () => go(t.dataset.view, t.dataset.view === "dataset" ? state.dataset : null, t.dataset.view === "reason" ? state.reason : null)));
 document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("lightbox").click(); });
 window.addEventListener("hashchange", render);
-fetch("data.json").then(r => r.json()).then(data => {
-  state.data = data;
-  const n = data.datasets.reduce((s, d) => s + d.evaluated, 0);
-  document.getElementById("subtitle").textContent = `${data.datasets.length} 个数据集 · ${n} episode · ${data.cases.length} 个 bad case · 生成于 ${data.generated}`;
-  render();
-}).catch(err => { document.getElementById("main").innerHTML = `<div class="empty">data.json 加载失败：${esc(err)}</div>`; });
+render();
 
 </script>
 </body></html>

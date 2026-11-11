@@ -1,0 +1,61 @@
+.layout.quality-layout { display: block; }
+.quality-layout .sidebar { display: none; }
+.quality-layout .main { max-width: 1460px; margin-inline: auto; padding-top: 24px; }
+.quality-layout h1 { font-size: clamp(24px, 3vw, 34px); line-height: 1.22; margin: 0 0 8px; }
+.quality-layout h2 { font-size: 17px; margin: 0 0 9px; }
+.quality-layout h3 { font-size: 14px; margin: 16px 0 7px; }
+.quality-layout p { margin: 7px 0; }
+.quality-layout :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.quality-summary { margin: 16px 0; }
+.quality-summary .stat { border-radius: 6px; }
+.quality-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0 26px; }
+.quality-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 15px 16px; min-width: 0; }
+.quality-legend { display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin: 5px 0 12px; }
+.quality-legend span { display: inline-flex; gap: 5px; align-items: center; }
+.quality-legend i { width: 10px; height: 8px; border-radius: 2px; }
+.quality-chart-note { font-size: 12px; }
+.quality-chart-row { display: grid; grid-template-columns: 125px minmax(0, 1fr) 90px; gap: 8px; align-items: center; min-height: 26px; font-size: 12px; }
+.quality-chart-row a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.quality-chart-row output { color: var(--muted); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+.quality-track { display: flex; overflow: hidden; border-radius: 3px; background: #243647; }
+.quality-track i { display: block; height: 7px; }
+.quality-track.stacked i { height: 11px; }
+.quality-track + .quality-track { margin-top: 3px; }
+.quality-episodes, .quality-l1 { background: var(--blue); }
+.quality-hours { background: var(--green); }
+.quality-l4 { background: var(--orange); }
+.quality-unknown { background: #485e73; }
+.quality-catalog { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(275px, 1fr); gap: 15px; align-items: start; }
+.quality-controls { display: flex; flex-wrap: wrap; gap: 9px; margin: 9px 0; align-items: center; }
+.quality-controls input, .quality-controls select { min-height: 34px; max-width: 100%; border: 1px solid var(--line); border-radius: 4px; background: #0f1924; color: var(--text); padding: 4px 9px; font: inherit; }
+.quality-controls input { width: 205px; }
+.quality-table table { width: 100%; min-width: 720px; }
+.quality-table td { font-variant-numeric: tabular-nums; }
+.quality-table a, .quality-detail a, .quality-findings a { color: var(--blue); }
+.quality-table tr.selected > * { background: #193044; }
+.quality-detail { scroll-margin-top: 110px; }
+.quality-detail .quality-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; margin: 9px 0; }
+.quality-detail .quality-metrics div { border-bottom: 1px solid var(--line); padding: 4px 0; }
+.quality-detail dt { color: var(--muted); font-size: 11px; }
+.quality-detail dd { margin: 0; font-variant-numeric: tabular-nums; }
+.quality-reasons { padding-left: 19px; margin: 5px 0; }
+.quality-reasons li { margin-block: 3px; }
+.quality-detail .matrix th, .quality-detail .matrix td { font-size: 11px; padding: 5px; }
+.quality-detail details { margin-top: 12px; }
+.quality-detail summary { cursor: pointer; color: var(--blue); }
+.quality-findings { margin-top: 22px; }
+.quality-findings ul { padding-left: 20px; margin-block: 8px; }
+.quality-findings li { margin-block: 7px; }
+.quality-method { margin-top: 20px; }
+.quality-method .muted { font-size: 13px; }
+@media (max-width: 1050px) { .quality-catalog { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 840px) { .quality-comparison { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) {
+  .tabs { flex-wrap: wrap; }
+  .tab { padding-inline: 8px; }
+  .quality-layout .main { padding: 16px 12px 40px; }
+  .quality-panel { padding: 12px; }
+  .quality-chart-row { grid-template-columns: 105px minmax(0, 1fr) 76px; gap: 6px; }
+  .quality-chart-row output { font-size: 10px; }
+  .quality-controls input { width: min(100%, 205px); }
+}
