@@ -1,0 +1,64 @@
+{
+  "dataset": "Human-1M",
+  "cohort_date": "2026-11-11",
+  "episodes": 247,
+  "hours": 10.004296296296307,
+  "kept": 36,
+  "keep_rate": 0.145748987854251,
+  "reason_counts": {
+    "wrist_rotation_step_exceeded": 143,
+    "visible_right_out_of_frame_streak_exceeded": 58,
+    "camera_space_hand_iqr_bounds_exceeded": 41,
+    "camera_rotation_step_exceeded": 1
+  },
+  "cases": [
+    {
+      "reason": "wrist_rotation_step_exceeded",
+      "episode_index": 997,
+      "detail": "第 1696–1697 帧间，右手腕姿态的旋转矩阵差为 2.828，超过上限 0.99，折合约 179°。观察右手腕三色坐标轴的相邻帧翻转。",
+      "clip": {
+        "src": "clips/Human-1M/Human-1M_episode-997_wrist-rotation.mp4",
+        "poster": "clips/Human-1M/Human-1M_episode-997_wrist-rotation.jpg",
+        "start": 1655,
+        "end": 1752,
+        "seconds": 7.2
+      }
+    },
+    {
+      "reason": "visible_right_out_of_frame_streak_exceeded",
+      "episode_index": 1221,
+      "detail": "第 2026–2096 帧共 71 个连续帧。右手标记为出现，手腕和五个指尖的投影均在画外，其中 33 帧触发严重出画。底栏显示连续出画计数。",
+      "clip": {
+        "src": "clips/Human-1M/Human-1M_episode-1221_right-offscreen.mp4",
+        "poster": "clips/Human-1M/Human-1M_episode-1221_right-offscreen.jpg",
+        "start": 1998,
+        "end": 2126,
+        "seconds": 8.6
+      }
+    },
+    {
+      "reason": "camera_space_hand_iqr_bounds_exceeded",
+      "episode_index": 23,
+      "detail": "第 5205 帧，右手第 3 个指尖在手腕坐标系中的 x 分量为 -18.4 cm，超出本批次下界 -7.7 cm。这条片段由指尖相对手腕范围规则淘汰。",
+      "clip": {
+        "src": "clips/Human-1M/Human-1M_episode-23_finger-range.mp4",
+        "poster": "clips/Human-1M/Human-1M_episode-23_finger-range.jpg",
+        "start": 5163,
+        "end": 5260,
+        "seconds": 7.2
+      }
+    },
+    {
+      "reason": "camera_rotation_step_exceeded",
+      "episode_index": 1016,
+      "detail": "第 227–228 帧间，相机旋转矩阵差为 0.774，超过上限 0.70，折合约 31.8°。该片段同时触发了右手出画与手腕几何规则，视频红框标出相机旋转越界帧。",
+      "clip": {
+        "src": "clips/Human-1M/Human-1M_episode-1016_camera-rotation.mp4",
+        "poster": "clips/Human-1M/Human-1M_episode-1016_camera-rotation.jpg",
+        "start": 186,
+        "end": 283,
+        "seconds": 7.2
+      }
+    }
+  ]
+}

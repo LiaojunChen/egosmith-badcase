@@ -48,6 +48,15 @@ table.matrix { border-collapse:collapse; font-size:12px; min-width:100%; }
 .clip-wrap video { width:100%; max-height:420px; background:#000; border:1px solid var(--line); display:block; }
 .clip-side { font-size:12px; color:#c7d1db; display:flex; flex-direction:column; gap:7px; }
 .clip-title { font-weight:700; font-size:13px; color:var(--text); } .clip-frame b { color:var(--amber); font-size:15px; }
+.review-shortcut { text-decoration:none; color:var(--blue); }
+.review-nav { background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px 12px; margin:12px 0; }
+.review-nav-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
+.review-nav-head a { color:var(--blue); }
+.review-case .clip-wrap { padding-bottom:12px; }
+.review-case .clip-side p { margin:0; font-size:13px; }
+.layout.review-focus { display:block; }
+.review-focus .sidebar { display:none; }
+.review-focus .main { max-width:1180px; margin-inline:auto; }
 .rates { display:flex; flex-wrap:wrap; gap:5px; } .rates button { background:#13202c; color:var(--muted); border:1px solid var(--line); padding:3px 8px; border-radius:4px; font-size:12px; }
 .rates button.on { color:var(--text); border-color:#3d6a8f; background:#172d40; }
 .chart svg[data-total] { cursor:crosshair; }
@@ -73,7 +82,7 @@ table.matrix { border-collapse:collapse; font-size:12px; min-width:100%; }
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt=""></div>
 <script src="quality-10h.js?v=20261112"></script>
 <script>
-const state = { view: "quality", dataset: null, reason: null, data: null, legacyRequest: null, legacyError: null };
+const state = { view: "quality", dataset: null, reason: null, data: null, review: null, legacyRequest: null, legacyError: null };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pct = v => (v == null ? "-" : (100 * v).toFixed(1) + "%");
 const fmt = (v, d = 3) => (v == null || !isFinite(v) ? "-" : Number(v).toFixed(d));
@@ -100,12 +109,15 @@ function readHash() {
   state.dataset = p.get("ds");
   state.reason = p.get("reason");
 }
-function go(view, dsName, reason) {
+function routeHash(view, dsName, reason) {
   const p = new URLSearchParams();
   p.set("view", view);
   if (dsName) p.set("ds", dsName);
   if (reason) p.set("reason", reason);
-  location.hash = p.toString();
+  return "#" + p.toString();
+}
+function go(view, dsName, reason) {
+  location.hash = routeHash(view, dsName, reason);
 }
 
 function renderSidebar() {
@@ -113,7 +125,9 @@ function renderSidebar() {
   const head = document.getElementById("sideHead");
   if (state.view === "reason") {
     head.textContent = "淘汰类别";
-    list.innerHTML = allReasons().map(r => {
+    const review = state.review;
+    const shortcut = review ? `<a class="item review-shortcut" href="${esc(routeHash("reason", review.dataset))}"><div class="item-line"><span class="item-name">${esc(review.dataset)} 视频</span><span class="pill">${review.cases.length} 段</span></div></a>` : "";
+    list.innerHTML = shortcut + allReasons().map(r => {
       const n = datasets().reduce((s, d) => s + (d.reason_counts[r] || 0), 0);
       const nds = datasets().filter(d => d.reason_counts[r]).length;
       return `<button class="item ${state.reason === r ? "active" : ""}" data-reason="${esc(r)}"><div class="item-line"><span class="item-name">${esc(reasonLabel(r))}</span><span class="pill">${n}</span></div><div class="item-sub">${nds} 个数据集 · ${esc(r)}</div></button>`;
@@ -254,7 +268,7 @@ function renderClip(c) {
 
 function bindClips() {
   document.querySelectorAll(".case").forEach(card => {
-    const wrap = card.querySelector(".clip-wrap");
+    const wrap = card.querySelector(".clip-wrap[data-fps]");
     if (!wrap) return;
     const video = wrap.querySelector("video");
     const start = +wrap.dataset.start, fps = +wrap.dataset.fps;
@@ -299,6 +313,34 @@ function bindClips() {
   }));
 }
 
+function reviewNavigation(review, selected, focused) {
+  const all = routeHash("reason", review.dataset);
+  const categories = review.cases.map(c => {
+    const active = focused && selected === c.reason;
+    return `<a class="chip${active ? " active" : ""}"${active ? ' aria-current="page"' : ""} href="${esc(routeHash("reason", review.dataset, c.reason))}">${esc(reasonLabel(c.reason))}</a>`;
+  }).join("");
+  return `<nav class="review-nav" aria-label="${esc(review.dataset)} 复核视频">
+    <div class="review-nav-head"><a href="${esc(all)}">${esc(review.dataset)} · 全部 ${review.cases.length} 段</a>
+      ${focused ? `<a href="${esc(routeHash("reason", null, selected))}">查看全部数据集</a>` : ""}</div>
+    <div class="chips">${categories}</div></nav>`;
+}
+
+function renderReviewCase(review, c) {
+  const clip = c.clip;
+  const name = `${review.dataset} · episode ${c.episode_index}`;
+  const reason = reasonLabel(c.reason);
+  return `<article class="case review-case" aria-label="${esc(name)}">
+    <div class="case-head"><div><div class="case-title">${esc(name)} <span class="pill bad">${esc(reason)}</span></div>
+      <div class="case-task">${esc(review.cohort_date)} · 10 小时评估</div></div>
+      <div class="case-meta">${review.reason_counts[c.reason]} / ${review.episodes} 条命中</div></div>
+    <div class="clip-wrap"><video class="clip" controls muted playsinline preload="none"
+      aria-label="${esc(name + " · " + reason)}" src="${esc(clip.src)}" poster="${esc(clip.poster)}"></video>
+      <div class="clip-side"><p>${esc(c.detail)}</p>
+        <div>原视频第 ${clip.start}–${clip.end} 帧 · 预览 ${fmt(clip.seconds, 1)} 秒</div>
+        <div class="muted">0.5 倍速。红框标出异常帧，底栏显示原始帧号和读数。</div></div>
+    </div></article>`;
+}
+
 function reasonChips(counts, active, onPick) {
   const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   return `<div class="chips">${entries.map(([r, n]) => `<button class="chip ${active === r ? "active" : ""}" data-pick="${esc(r)}">${esc(reasonLabel(r))}<b>${n}</b></button>`).join("")}</div>`;
@@ -333,6 +375,18 @@ function renderDataset() {
 }
 
 function renderReason() {
+  const review = state.review;
+  const main = document.getElementById("main");
+  if (review && state.dataset === review.dataset) {
+    const selected = review.cases.find(c => c.reason === state.reason);
+    const shown = selected ? [selected] : review.cases;
+    main.innerHTML = `<h1>${esc(review.dataset)} · 淘汰案例</h1>
+      <div class="muted">${esc(review.cohort_date)} · 评估 ${review.episodes} 条 / ${fmt(review.hours, 2)} 小时 · 保留 ${review.kept} 条（${fmt(review.keep_rate * 100, 2)}%）</div>
+      ${reviewNavigation(review, selected?.reason, true)}
+      ${shown.map(c => renderReviewCase(review, c)).join("")}`;
+    bindImages();
+    return;
+  }
   const reasons = allReasons();
   const r = state.reason && reasons.includes(state.reason) ? state.reason : reasons[0];
   state.reason = r;
@@ -341,9 +395,12 @@ function renderReason() {
     const cs = casesFor(d.name, r);
     return `<h2><a href="#view=dataset&ds=${encodeURIComponent(d.name)}" style="color:var(--text)">${esc(d.name)}</a> <span class="muted" style="font-weight:400">· ${d.reason_counts[r]}/${d.evaluated} 条（${pct(d.reason_counts[r] / d.evaluated)}），展示 ${cs.length} 条</span></h2>${cs.map(renderCase).join("")}`;
   }).join("");
-  document.getElementById("main").innerHTML = `
+  const additions = review?.cases.filter(c => c.reason === r) ?? [];
+  main.innerHTML = `
     <div class="eyebrow">reason · ${esc(r)}</div><h1>${esc(reasonLabel(r))}</h1>
+    ${review ? reviewNavigation(review, null, false) : ""}
     <div class="reason-desc">${esc(reasonDesc(r))}</div>
+    ${additions.map(c => renderReviewCase(review, c)).join("")}
     <div class="chips">${hit.map(d => `<a class="chip" href="#view=dataset&ds=${encodeURIComponent(d.name)}&reason=${encodeURIComponent(r)}">${esc(d.name)}<b>${d.reason_counts[r]}</b></a>`).join("")}</div>
     ${sections}`;
   bindImages();
@@ -365,7 +422,10 @@ function render() {
     else t.removeAttribute("aria-current");
   });
   const quality = state.view === "quality";
-  document.querySelector(".layout").classList.toggle("quality-layout", quality);
+  const layout = document.querySelector(".layout");
+  layout.classList.toggle("quality-layout", quality);
+  const reviewFocus = state.view === "reason" && state.review && state.dataset === state.review.dataset;
+  layout.classList.toggle("review-focus", Boolean(reviewFocus));
   const subtitle = document.getElementById("subtitle");
   const main = document.getElementById("main");
   if (quality) {
@@ -377,11 +437,16 @@ function render() {
     subtitle.textContent = "历史几何评估";
     main.innerHTML = `<p class="empty" role="status">${state.legacyError ? esc(state.legacyError) : "正在加载历史样例…"}</p>`;
     if (!state.legacyRequest) {
-      state.legacyRequest = fetch("data.json").then(response => {
+      const history = fetch("data.json").then(response => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
-      }).then(data => {
+      });
+      const review = fetch("human-1m-badcases.json", { cache: "no-cache" })
+        .then(response => response.ok ? response.json() : null)
+        .catch(() => null);
+      state.legacyRequest = Promise.all([history, review]).then(([data, current]) => {
         state.data = data;
+        state.review = current?.cases?.length ? current : null;
         if (state.view !== "quality") render();
       }).catch(error => {
         state.legacyError = `历史数据加载失败（${error.message}）`;
@@ -391,7 +456,9 @@ function render() {
     return;
   }
   const n = state.data.datasets.reduce((s, d) => s + d.evaluated, 0);
-  subtitle.textContent = `历史几何评估 · ${state.data.datasets.length} 个数据集 · ${n} 条 · ${state.data.cases.length} 个样例`;
+  subtitle.textContent = reviewFocus
+    ? `${state.review.cohort_date} · ${state.review.dataset} · ${state.review.cases.length} 段视频`
+    : `历史几何评估 · ${state.data.datasets.length} 个数据集 · ${n} 条 · ${state.data.cases.length} 个样例`;
   renderSidebar();
   if (state.view === "dataset") renderDataset();
   else if (state.view === "reason") renderReason();
